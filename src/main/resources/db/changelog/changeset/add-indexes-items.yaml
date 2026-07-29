@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_indexes_items
+      author: Savitskiy
+      changes:
+        - createIndex:
+            indexName: idx_items_name
+            tableName: items
+            columns:
+              - column:
+                  name: name

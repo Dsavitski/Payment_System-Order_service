@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_auditing_items
+      author: Savitskiy
+      changes:
+        - addColumn:
+            tableName: items
+            columns:
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false

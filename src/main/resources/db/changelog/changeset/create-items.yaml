@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-items
+      author: Savitskiy
+      changes:
+        - createTable:
+            tableName: items
+            columns:
+
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false

@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_indexes_order_items
+      author: Savitskiy
+      changes:
+        - createIndex:
+            indexName: idx_order_items_order_id
+            tableName: order_items
+            columns:
+              - column:
+                  name: order_id
+        - createIndex:
+            indexName: idx_order_items_item_id
+            tableName: order_items
+            columns:
+              - column:
+                  name: item_id
