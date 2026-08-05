@@ -13,7 +13,7 @@ public class OrderSpecification {
 
     public static Specification<Order> createdAfter(LocalDateTime from) {
         if (from == null) {
-            return null;
+            return (root, query, cb) -> cb.conjunction();
         }
 
         return (root, query, cb) ->
@@ -22,7 +22,7 @@ public class OrderSpecification {
 
     public static Specification<Order> createdBefore(LocalDateTime to) {
         if (to == null) {
-            return null;
+            return (root, query, cb) -> cb.conjunction();
         }
 
         return (root, query, cb) ->
@@ -31,7 +31,7 @@ public class OrderSpecification {
 
     public static Specification<Order> hasStatuses(List<String> statuses) {
         if (statuses == null || statuses.isEmpty()) {
-            return null;
+            return (root, query, cb) -> cb.conjunction();
         }
 
         return (root, query, cb) ->

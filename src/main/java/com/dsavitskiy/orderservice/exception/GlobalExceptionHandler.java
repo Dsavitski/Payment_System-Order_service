@@ -4,6 +4,8 @@ import com.dsavitskiy.orderservice.dto.ErrorResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,7 +17,8 @@ import java.time.ZoneId;
 public class GlobalExceptionHandler {
     private static final String LOG_WARNS = "HTTP {}: {}";
     private static final String MINSK_TIME_ZONE = "Europe/Minsk";
-    @ExceptionHandler(Exception.class)
+
+    @ExceptionHandler(ResourceNotFoundExeption.class)
     public ResponseEntity<ErrorResponseDto> resourceNotFoundException(ResourceNotFoundExeption ex) {
       log.warn(LOG_WARNS, HttpStatus.NOT_FOUND.value(),ex.getMessage());
       ErrorResponseDto response =new ErrorResponseDto(
@@ -25,4 +28,40 @@ public class GlobalExceptionHandler {
           ex.getMessage());
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDto> methodArgumentNotValidException(
+        MethodArgumentNotValidException ex) {
+        log.info(LOG_WARNS, HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        ErrorResponseDto response =new ErrorResponseDto(
+            LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
+            HttpStatus.BAD_REQUEST.value(),
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> accessDeniedException(AccessDeniedException ex) {
+        log.info(LOG_WARNS, HttpStatus.FORBIDDEN.value(), ex.getMessage());
+        ErrorResponseDto response =new ErrorResponseDto(
+            LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
+            HttpStatus.FORBIDDEN.value(),
+            HttpStatus.FORBIDDEN.getReasonPhrase(),
+            ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> unexpectedException(Exception ex) {
+        log.info(LOG_WARNS, HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        ErrorResponseDto response =new ErrorResponseDto(
+            LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+            ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+
+
 }

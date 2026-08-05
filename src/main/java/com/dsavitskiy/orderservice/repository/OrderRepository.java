@@ -11,5 +11,5 @@ import java.util.UUID;
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long>,
     JpaSpecificationExecutor<Order> {
-    List<Order> findByUserIdAndNoDeleted(UUID userId);
+    List<Order> findByUserIdAndDeletedFalse(UUID userId);
 }
