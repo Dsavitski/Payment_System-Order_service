@@ -1,0 +1,55 @@
+services:
+  postgres-order:
+    image: postgres:16-alpine
+    container_name: postgres-order
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - payment-system-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/order-service:latest
+    container_name: order-service
+    restart: always
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: ${SERVER_PORT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      KEYCLOAK_JWK_SET_URI: ${KEYCLOAK_JWK_SET_URI}
+    ports:
+      - "8083:8083"
+    networks:
+      - payment-system-network
+
+networks:
+  payment-system-network:
+    external: true
+    name: payment-system-network
+
+volumes:
+  postgres_order_data:
