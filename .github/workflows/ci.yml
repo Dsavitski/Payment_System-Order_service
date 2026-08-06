@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    name: Build, Test, SonarCloud Analysis & Docker Image
+    name: Build, Test, SonarCloud & Docker
     runs-on: ubuntu-latest
 
     steps:
@@ -35,11 +35,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build
-        run: ./gradlew clean assemble
-
-      - name: Run Tests
-        run: ./gradlew test --info
+      - name: Build and Test with Gradle
+        run: ./gradlew clean build
 
       - name: Upload Test Reports
         if: failure()
@@ -52,7 +49,7 @@ jobs:
           retention-days: 7
 
       - name: SonarCloud Analysis
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && env.SONAR_TOKEN != ''
         run: ./gradlew sonar -Dsonar.branch.name=${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
