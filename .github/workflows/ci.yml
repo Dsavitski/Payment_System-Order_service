@@ -51,13 +51,12 @@ jobs:
             build/test-results/test
           retention-days: 7
 
-
       - name: SonarCloud Analysis
         if: github.event_name == 'push'
         run: ./gradlew sonar -Dsonar.branch.name=${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Set up Docker Buildx
         if: github.event_name == 'push'
@@ -80,7 +79,6 @@ jobs:
           tags: |
             type=sha
             type=ref,event=branch
-
 
       - name: Build and Push Docker Image
         if: github.event_name == 'push'
