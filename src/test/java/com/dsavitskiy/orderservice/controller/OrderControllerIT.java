@@ -95,6 +95,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                 """.formatted(userId)))
         );
     }
+
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor userJwt() {
 
         return jwt()
@@ -105,6 +106,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                     Map.of("roles", List.of("USER"))))
             .authorities(new SimpleGrantedAuthority("ROLE_USER"));
     }
+
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor adminJwt() {
 
         return jwt()
@@ -115,6 +117,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                     Map.of("roles", List.of("ADMIN"))))
             .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
+
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor userJwt(UUID anotherUser) {
 
         return jwt()
@@ -125,6 +128,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                     Map.of("roles", List.of("USER"))))
             .authorities(new SimpleGrantedAuthority("ROLE_USER"));
     }
+
     private Item createItem() {
 
         Item item = new Item();
@@ -134,6 +138,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
         return itemRepository.save(item);
     }
+
     private String createOrderJson(Long itemId) {
 
         return """
@@ -305,33 +310,40 @@ class OrderControllerIT extends AbstractIntegrationTest {
     @Test
     void shouldGetOrdersByEmail() throws Exception {
 
+        UUID ivanId = UUID.randomUUID();
+
         wireMockServer.stubFor(
-            com.github.tomakehurst.wiremock.client.WireMock.get(urlEqualTo("/api/users/email/test@mail.com"))
+            com.github.tomakehurst.wiremock.client.WireMock.get(urlEqualTo("/api/users/email/ivan@test.com"))
                 .willReturn(okJson("""
                 {
                   "id":"%s",
                   "firstName":"Ivan",
                   "lastName":"Ivanov",
-                  "email":"test@mail.com",
-                  "phoneNumber":"123456789",
+                  "email":"ivan@test.com",
+                  "phoneNumber":"987654321",
                   "deleted":false
                 }
-                """.formatted(userId)))
+                """.formatted(ivanId)))
         );
 
         Item item = createItem();
 
-        createOrder(item);
+        mockMvc.perform(
+                post("/api/orders")
+                    .with(userJwt(ivanId))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(createOrderJson(item.getId())))
+            .andExpect(status().isCreated());
 
         var mvcResult = mockMvc.perform(
-                get("/api/orders/user/email/test@mail.com")
+                get("/api/orders/user/email/ivan@test.com")
                     .with(adminJwt()))
             .andExpect(status().isOk())
             .andReturn();
 
         String response = mvcResult.getResponse().getContentAsString();
 
-        assertThat(response).contains("test@mail.com");
+        assertThat(response).contains(ivanId.toString());
     }
 
     @Test
@@ -352,7 +364,3 @@ class OrderControllerIT extends AbstractIntegrationTest {
             .andExpect(status().isForbidden());
     }
 }
-
-
-
-
