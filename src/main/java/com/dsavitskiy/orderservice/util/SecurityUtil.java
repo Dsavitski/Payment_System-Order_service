@@ -20,7 +20,7 @@ public final class SecurityUtil {
                 String userId = jwt.getClaimAsString("sub");
                 if (userId != null) {
                     return UUID.fromString(userId);
-                }
+                } 
             }
         }
         throw new IllegalStateException("Cannot determine current user");
