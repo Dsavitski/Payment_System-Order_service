@@ -4,25 +4,28 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
-    @Container
-    static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:16-alpine")
+    static final PostgreSQLContainer<?> postgres;
+
+    static {
+        postgres = new PostgreSQLContainer<>("postgres:16-alpine")
             .withDatabaseName("TestDB")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withReuse(true);
+        postgres.start();
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
