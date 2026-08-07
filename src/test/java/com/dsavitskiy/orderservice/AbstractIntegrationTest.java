@@ -10,28 +10,24 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>("postgres:16")
-            .withDatabaseName("orderservice")
-            .withUsername("postgres")
-            .withPassword("postgres");
+        new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("TestDB")
+            .withUsername("test")
+            .withPassword("test");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-
-        registry.add("spring.datasource.url",
-            postgres::getJdbcUrl);
-
-        registry.add("spring.datasource.username",
-            postgres::getUsername);
-
-        registry.add("spring.datasource.password",
-            postgres::getPassword);
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name",
+            () -> "org.postgresql.Driver");
     }
 }
