@@ -285,6 +285,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
         String response = mvcResult.getResponse().getContentAsString();
 
+        
         assertThat(response).contains("PENDING");
         assertThat(response).contains(userId.toString());
     }
