@@ -304,7 +304,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                     .with(adminJwt()))
             .andExpect(status().isOk())
             .andReturn();
-        
+
         wireMockServer.verify(
             com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor(
                 urlEqualTo("/api/users/email/ivan@test.com"))

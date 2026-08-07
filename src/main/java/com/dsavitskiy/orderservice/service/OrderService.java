@@ -85,20 +85,6 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponseDto> getOrdersByEmail(String email) {
-
-        UserDisplayDto user = getUserByEmail(email);
-
-        return orderRepository.findByUserIdAndDeletedFalse(user.id())
-            .stream()
-            .map(order -> new OrderResponseDto(
-                orderMapper.toDisplayDto(order),
-                user
-            ))
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
     public List<OrderResponseDto> getOrdersByUserId(UUID userId) {
         if (!SecurityUtil.isAdmin()
             && !SecurityUtil.getCurrentUserId().equals(userId)) {
