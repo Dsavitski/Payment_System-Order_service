@@ -2,6 +2,7 @@ package com.dsavitskiy.orderservice;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -12,6 +13,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@AutoConfigureWireMock(port = 0)
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
