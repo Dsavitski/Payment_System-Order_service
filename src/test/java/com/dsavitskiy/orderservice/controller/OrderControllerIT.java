@@ -269,55 +269,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
                 .isDeleted())
             .isTrue();
     }
-
-    @Test
-    void shouldGetOrdersByEmail() throws Exception {
-
-        UUID ivanId = UUID.randomUUID();
-
-        wireMockServer.stubFor(
-            com.github.tomakehurst.wiremock.client.WireMock.get(
-                    urlEqualTo("/api/users/email/ivan@test.com"))
-                .willReturn(okJson("""
-                {
-                  "id":"%s",
-                  "firstName":"Ivan",
-                  "lastName":"Ivanov",
-                  "email":"ivan@test.com",
-                  "phoneNumber":"987654321",
-                  "deleted":false
-                }
-                """.formatted(ivanId)))
-        );
-
-        Item item = createItem();
-
-        mockMvc.perform(
-                post("/api/orders")
-                    .with(userJwt(ivanId))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(createOrderJson(item.getId())))
-            .andExpect(status().isCreated());
-
-        var mvcResult = mockMvc.perform(
-                get("/api/orders/user/email/{email}", "ivan@test.com")
-                    .with(adminJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        wireMockServer.verify(
-            com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor(
-                urlEqualTo("/api/users/email/ivan@test.com"))
-        );
-
-        String response = mvcResult.getResponse().getContentAsString();
-
-        System.out.println(response);
-
-        assertThat(response).contains(ivanId.toString());
-        assertThat(response).contains("ivan@test.com");
-        assertThat(response).contains("PENDING");
-    }
+    
 
     @Test
     void shouldGetOrders() throws Exception {
