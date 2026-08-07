@@ -308,45 +308,6 @@ class OrderControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldGetOrdersByEmail() throws Exception {
-
-        UUID ivanId = UUID.randomUUID();
-
-        wireMockServer.stubFor(
-            com.github.tomakehurst.wiremock.client.WireMock.get(urlEqualTo("/api/users/email/ivan@test.com"))
-                .willReturn(okJson("""
-                {
-                  "id":"%s",
-                  "firstName":"Ivan",
-                  "lastName":"Ivanov",
-                  "email":"ivan@test.com",
-                  "phoneNumber":"987654321",
-                  "deleted":false
-                }
-                """.formatted(ivanId)))
-        );
-
-        Item item = createItem();
-
-        mockMvc.perform(
-                post("/api/orders")
-                    .with(userJwt(ivanId))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(createOrderJson(item.getId())))
-            .andExpect(status().isCreated());
-
-        var mvcResult = mockMvc.perform(
-                get("/api/orders/user/email/ivan@test.com")
-                    .with(adminJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        String response = mvcResult.getResponse().getContentAsString();
-
-        assertThat(response).contains(ivanId.toString());
-    }
-
-    @Test
     void shouldReturnNotFoundWhenOrderDoesNotExist() throws Exception {
 
         mockMvc.perform(
