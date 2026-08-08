@@ -279,12 +279,10 @@ class ItemControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/items"))
             .andExpect(status().isUnauthorized());
-
         mockMvc.perform(post("/api/items")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Laptop\",\"price\":2500.00}"))
             .andExpect(status().isUnauthorized());
-
         mockMvc.perform(delete("/api/items/{id}", 1L))
             .andExpect(status().isUnauthorized());
     }
