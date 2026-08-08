@@ -5,6 +5,7 @@ import com.dsavitskiy.orderservice.dto.*;
 import com.dsavitskiy.orderservice.entity.Item;
 import com.dsavitskiy.orderservice.entity.Order;
 import com.dsavitskiy.orderservice.exception.ResourceNotFoundExeption;
+import com.dsavitskiy.orderservice.exception.UserServiceException;
 import com.dsavitskiy.orderservice.mapper.OrderMapper;
 import com.dsavitskiy.orderservice.repository.ItemRepository;
 import com.dsavitskiy.orderservice.repository.OrderRepository;
@@ -18,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,9 +64,7 @@ class OrderServiceTest {
             userId,
             "John",
             "Doe",
-            "john@mail.com",
-            LocalDate.now(),
-            true
+            "john@mail.com"
         );
 
         when(orderMapper.toEntity(dto)).thenReturn(order);
@@ -149,24 +147,24 @@ class OrderServiceTest {
     }
 
     @Test
-    void fallbackUserByEmail_ShouldReturnDefaultUser() {
-        UserDisplayDto dto = orderService.fallbackUserByEmail(
-            "mail@test.com",
-            new RuntimeException()
+    void fallbackUserByEmail_ShouldThrowUserServiceException() {
+        assertThrows(
+            UserServiceException.class,
+            () -> orderService.fallbackUserByEmail(
+                "mail@test.com",
+                new RuntimeException("service down")
+            )
         );
-
-        assertEquals("mail@test.com", dto.email());
-        assertEquals("Unknown", dto.name());
     }
 
     @Test
-    void fallbackUserById_ShouldReturnDefaultUser() {
-        UserDisplayDto dto = orderService.fallbackUserById(
-            userId,
-            new RuntimeException()
+    void fallbackUserById_ShouldThrowUserServiceException() {
+        assertThrows(
+            UserServiceException.class,
+            () -> orderService.fallbackUserById(
+                userId,
+                new RuntimeException("service down")
+            )
         );
-
-        assertEquals(userId, dto.id());
-        assertEquals("Unknown", dto.name());
     }
 }

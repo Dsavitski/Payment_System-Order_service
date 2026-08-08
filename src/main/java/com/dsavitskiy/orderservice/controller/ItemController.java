@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ItemDisplayDto> createItem(
         @Valid @RequestBody ItemCreateDto itemCreateDto) {
         ItemDisplayDto item = itemService.createItem(itemCreateDto);
@@ -33,16 +35,19 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ItemDisplayDto> getItemById(
         @PathVariable Long id) {
         return ResponseEntity.ok(itemService.getItemById(id));
     }
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Page<ItemDisplayDto>> getAllItems(
         @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(itemService.getAllItems(pageable));
     }
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ItemDisplayDto> updateItem(
         @PathVariable Long id,
         @Valid @RequestBody ItemCreateDto itemCreateDto) {
@@ -50,6 +55,7 @@ public class ItemController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteItem(
         @PathVariable Long id) {
         itemService.deleteItem(id);

@@ -72,11 +72,9 @@ class OrderControllerIT extends AbstractIntegrationTest {
                 .willReturn(okJson("""
                 {
                   "id":"%s",
-                  "firstName":"John",
-                  "lastName":"Doe",
-                  "email":"john@test.com",
-                  "phoneNumber":"123456789",
-                  "deleted":false
+                  "name":"John",
+                  "surname":"Doe",
+                  "email":"john@test.com"
                 }
                 """.formatted(userId)))
         );
@@ -86,11 +84,9 @@ class OrderControllerIT extends AbstractIntegrationTest {
                 .willReturn(okJson("""
                 {
                   "id":"%s",
-                  "firstName":"John",
-                  "lastName":"Doe",
-                  "email":"john@test.com",
-                  "phoneNumber":"123456789",
-                  "deleted":false
+                  "name":"John",
+                  "surname":"Doe",
+                  "email":"john@test.com"
                 }
                 """.formatted(userId)))
         );

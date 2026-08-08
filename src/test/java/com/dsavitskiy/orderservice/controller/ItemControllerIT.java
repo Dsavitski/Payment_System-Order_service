@@ -53,6 +53,16 @@ class ItemControllerIT extends AbstractIntegrationTest {
             .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor userJwt() {
+
+        return jwt()
+            .jwt(jwt -> jwt
+                .subject(UUID.randomUUID().toString())
+                .claim("sub", UUID.randomUUID().toString())
+                .claim("realm_access", Map.of("roles", List.of("USER"))))
+            .authorities(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
     private Item createItem() {
 
         Item item = new Item();
@@ -182,5 +192,100 @@ class ItemControllerIT extends AbstractIntegrationTest {
                 get("/api/items/{id}", 999L)
                     .with(adminJwt()))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldGetAllItemsAsUser() throws Exception {
+
+        createItem();
+
+        MvcResult result = mockMvc.perform(
+                get("/api/items")
+                    .with(userJwt()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+
+        assertThat(response).contains("Phone");
+    }
+
+    @Test
+    void shouldGetItemByIdAsUser() throws Exception {
+
+        Item item = createItem();
+
+        mockMvc.perform(
+                get("/api/items/{id}", item.getId())
+                    .with(userJwt()))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenUserCreatesItem() throws Exception {
+
+        String json = """
+        {
+          "name":"Laptop",
+          "price":2500.00
+        }
+        """;
+
+        mockMvc.perform(
+                post("/api/items")
+                    .with(userJwt())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json))
+            .andExpect(status().isForbidden());
+
+        assertThat(itemRepository.count()).isZero();
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenUserUpdatesItem() throws Exception {
+
+        Item item = createItem();
+
+        String json = """
+        {
+          "name":"IPhone",
+          "price":3500.00
+        }
+        """;
+
+        mockMvc.perform(
+                put("/api/items/{id}", item.getId())
+                    .with(userJwt())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenUserDeletesItem() throws Exception {
+
+        Item item = createItem();
+
+        mockMvc.perform(
+                delete("/api/items/{id}", item.getId())
+                    .with(userJwt()))
+            .andExpect(status().isForbidden());
+
+        assertThat(itemRepository.findById(item.getId())).isPresent();
+    }
+
+    @Test
+    void shouldReturnUnauthorizedWithoutJwt() throws Exception {
+
+        mockMvc.perform(get("/api/items"))
+            .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/items")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Laptop\",\"price\":2500.00}"))
+            .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(delete("/api/items/{id}", 1L))
+            .andExpect(status().isUnauthorized());
     }
 }
