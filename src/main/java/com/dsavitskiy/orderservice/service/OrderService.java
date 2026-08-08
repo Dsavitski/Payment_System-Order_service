@@ -10,6 +10,7 @@ import com.dsavitskiy.orderservice.entity.Item;
 import com.dsavitskiy.orderservice.entity.Order;
 import com.dsavitskiy.orderservice.entity.OrderItem;
 import com.dsavitskiy.orderservice.exception.ResourceNotFoundExeption;
+import com.dsavitskiy.orderservice.exception.UserServiceException;
 import com.dsavitskiy.orderservice.mapper.OrderMapper;
 import com.dsavitskiy.orderservice.repository.ItemRepository;
 import com.dsavitskiy.orderservice.repository.OrderRepository;
@@ -112,7 +113,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDto updateOrder(Long id, OrderCreateDto dto) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findById(id).filter(o->!o.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundExeption(ORDER_NOT_FOUND + id));
         checkAccess(order);
         order.getOrderItems().clear();
@@ -122,7 +123,7 @@ public class OrderService {
 
     @Transactional
     public void deleteOrder(Long id) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findById(id).filter(o->!o.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundExeption(ORDER_NOT_FOUND + id));
         checkAccess(order);
         order.setDeleted(true);
@@ -175,31 +176,13 @@ public class OrderService {
         return userClient.getUserById(userId);
     }
 
-    public UserDisplayDto fallbackUserByEmail(
-        String email,
-        Throwable throwable) {
-        log.info("Fallback because: {}", throwable.getMessage());
-        return new UserDisplayDto(
-            null,
-            "Unknown",
-            "User",
-            email,
-            null,
-            false
-        );
+    public UserDisplayDto fallbackUserByEmail(String email, Throwable throwable) {
+        log.info("User Service is unavailable while getting user by email: {}", email, throwable);
+        throw new UserServiceException("User Service is temporarily unavailable", throwable);
     }
 
-    public UserDisplayDto fallbackUserById(
-        UUID userId,
-        Throwable throwable) {
-        log.info("Fallback because: {}", throwable.getMessage());
-        return new UserDisplayDto(
-            userId,
-            "Unknown",
-            "User",
-            "unknown@mail.com",
-            null,
-            false
-        );
+    public UserDisplayDto fallbackUserById(UUID userId, Throwable throwable) {
+        log.info("User Service is unavailable while getting user by id: {}", userId, throwable);
+        throw new UserServiceException("User Service is temporarily unavailable", throwable);
     }
 }

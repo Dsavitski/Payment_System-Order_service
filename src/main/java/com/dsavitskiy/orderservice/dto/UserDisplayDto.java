@@ -7,8 +7,6 @@ public record UserDisplayDto(
     UUID id,
     String name,
     String surname,
-    String email,
-    LocalDate birthDate,
-    boolean active
+    String email
 ) {
 }

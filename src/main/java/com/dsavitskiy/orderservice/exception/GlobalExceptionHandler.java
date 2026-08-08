@@ -62,6 +62,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(UserServiceException.class)
+    public ResponseEntity<ErrorResponseDto> userServiceException(UserServiceException ex){
+        log.info(LOG_WARNS, HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage());
+        ErrorResponseDto response = new ErrorResponseDto(
+            LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+            ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
+
+
 
 
 }
