@@ -15,12 +15,12 @@ import java.time.ZoneId;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    private static final String LOG_WARNS = "HTTP {}: {}";
+    private static final String LOG_MESSAGE = "HTTP {}: {}";
     private static final String MINSK_TIME_ZONE = "Europe/Minsk";
 
     @ExceptionHandler(ResourceNotFoundExeption.class)
     public ResponseEntity<ErrorResponseDto> resourceNotFoundException(ResourceNotFoundExeption ex) {
-      log.warn(LOG_WARNS, HttpStatus.NOT_FOUND.value(),ex.getMessage());
+      log.warn(LOG_MESSAGE, HttpStatus.NOT_FOUND.value(),ex.getMessage());
       ErrorResponseDto response =new ErrorResponseDto(
           LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
           HttpStatus.NOT_FOUND.value(),
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponseDto> methodArgumentNotValidException(
         MethodArgumentNotValidException ex) {
-        log.info(LOG_WARNS, HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        log.info(LOG_MESSAGE, HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         ErrorResponseDto response =new ErrorResponseDto(
             LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
             HttpStatus.BAD_REQUEST.value(),
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDto> accessDeniedException(AccessDeniedException ex) {
-        log.info(LOG_WARNS, HttpStatus.FORBIDDEN.value(), ex.getMessage());
+        log.info(LOG_MESSAGE, HttpStatus.FORBIDDEN.value(), ex.getMessage());
         ErrorResponseDto response =new ErrorResponseDto(
             LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
             HttpStatus.FORBIDDEN.value(),
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> unexpectedException(Exception ex) {
-        log.info(LOG_WARNS, HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+        log.info(LOG_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
         ErrorResponseDto response =new ErrorResponseDto(
             LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserServiceException.class)
     public ResponseEntity<ErrorResponseDto> userServiceException(UserServiceException ex){
-        log.info(LOG_WARNS, HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage());
+        log.info(LOG_MESSAGE, HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage());
         ErrorResponseDto response = new ErrorResponseDto(
             LocalDateTime.now(ZoneId.of(MINSK_TIME_ZONE)),
             HttpStatus.SERVICE_UNAVAILABLE.value(),

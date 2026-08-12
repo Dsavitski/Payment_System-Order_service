@@ -13,6 +13,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.http.MediaType;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -73,217 +74,238 @@ class ItemControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void shouldCreateItem() throws Exception {
-
-        String json = """
+    void shouldCreateItem() {
+        assertDoesNotThrow(() -> {
+            String json = """
         {
           "name":"Laptop",
           "price":2500.00
         }
         """;
-
-        MvcResult result = mockMvc.perform(
-                post("/api/items")
-                    .with(adminJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        ItemDisplayDto response = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            ItemDisplayDto.class
-        );
-
-        assertThat(response.id()).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.price()).isEqualByComparingTo("2500.00");
-        assertThat(itemRepository.count()).isEqualTo(1);
+            MvcResult result = mockMvc.perform(
+                    post("/api/v1/items")
+                        .with(adminJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andReturn();
+            ItemDisplayDto response = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ItemDisplayDto.class
+            );
+            assertThat(response.id()).isNotNull();
+            assertThat(response.name()).isEqualTo("Laptop");
+            assertThat(response.price()).isEqualByComparingTo("2500.00");
+            assertThat(itemRepository.count()).isEqualTo(1);
+        });
     }
 
     @Test
-    void shouldGetItemById() throws Exception {
+    void shouldGetItemById() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
+            MvcResult result = mockMvc.perform(
+                    get("/api/v1/items/{id}", item.getId())
+                        .with(adminJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        MvcResult result = mockMvc.perform(
-                get("/api/items/{id}", item.getId())
-                    .with(adminJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
+            ItemDisplayDto response = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ItemDisplayDto.class
+            );
 
-        ItemDisplayDto response = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            ItemDisplayDto.class
-        );
-
-        assertThat(response.id()).isEqualTo(item.getId());
-        assertThat(response.name()).isEqualTo(item.getName());
-        assertThat(response.price()).isEqualByComparingTo(item.getPrice());
+            assertThat(response.id()).isEqualTo(item.getId());
+            assertThat(response.name()).isEqualTo(item.getName());
+            assertThat(response.price())
+                .isEqualByComparingTo(item.getPrice());
+        });
     }
 
     @Test
-    void shouldGetAllItems() throws Exception {
+    void shouldGetAllItems() {
+        assertDoesNotThrow(() -> {
+            createItem();
 
-        createItem();
+            MvcResult result = mockMvc.perform(
+                    get("/api/v1/items")
+                        .with(adminJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        MvcResult result = mockMvc.perform(
-                get("/api/items")
-                    .with(adminJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
+            String response = result.getResponse().getContentAsString();
 
-        String response = result.getResponse().getContentAsString();
-
-        assertThat(response).contains("Phone");
+            assertThat(response).contains("Phone");
+        });
     }
 
     @Test
-    void shouldUpdateItem() throws Exception {
+    void shouldUpdateItem() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
-
-        String json = """
+            String json = """
         {
           "name":"IPhone",
           "price":3500.00
         }
         """;
 
-        MvcResult result = mockMvc.perform(
-                put("/api/items/{id}", item.getId())
-                    .with(adminJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-            .andExpect(status().isOk())
-            .andReturn();
+            MvcResult result = mockMvc.perform(
+                    put("/api/v1/items/{id}", item.getId())
+                        .with(adminJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        ItemDisplayDto response = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            ItemDisplayDto.class
-        );
+            ItemDisplayDto response = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ItemDisplayDto.class
+            );
 
-        assertThat(response.name()).isEqualTo("IPhone");
-        assertThat(response.price()).isEqualByComparingTo("3500.00");
+            assertThat(response.name()).isEqualTo("IPhone");
+            assertThat(response.price()).isEqualByComparingTo("3500.00");
 
-        Item updated = itemRepository.findById(item.getId()).orElseThrow();
+            Item updated = itemRepository.findById(item.getId()).orElseThrow();
 
-        assertThat(updated.getName()).isEqualTo("IPhone");
-        assertThat(updated.getPrice()).isEqualByComparingTo("3500.00");
+            assertThat(updated.getName()).isEqualTo("IPhone");
+            assertThat(updated.getPrice())
+                .isEqualByComparingTo("3500.00");
+        });
     }
 
     @Test
-    void shouldDeleteItem() throws Exception {
+    void shouldDeleteItem() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
+            mockMvc.perform(
+                    delete("/api/v1/items/{id}", item.getId())
+                        .with(adminJwt()))
+                .andExpect(status().isNoContent());
 
-        mockMvc.perform(
-                delete("/api/items/{id}", item.getId())
-                    .with(adminJwt()))
-            .andExpect(status().isNoContent());
-
-        assertThat(itemRepository.findById(item.getId())).isEmpty();
+            assertThat(itemRepository.findById(item.getId())).isEmpty();
+        });
     }
 
     @Test
-    void shouldReturnNotFoundWhenItemDoesNotExist() throws Exception {
-
-        mockMvc.perform(
-                get("/api/items/{id}", 999L)
-                    .with(adminJwt()))
-            .andExpect(status().isNotFound());
+    void shouldReturnNotFoundWhenItemDoesNotExist() {
+        assertDoesNotThrow(() -> {
+            mockMvc.perform(
+                    get("/api/v1/items/{id}", 999L)
+                        .with(adminJwt()))
+                .andExpect(status().isNotFound());
+        });
     }
 
     @Test
-    void shouldGetAllItemsAsUser() throws Exception {
+    void shouldGetAllItemsAsUser() {
+        assertDoesNotThrow(() -> {
+            createItem();
 
-        createItem();
+            MvcResult result = mockMvc.perform(
+                    get("/api/v1/items")
+                        .with(userJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        MvcResult result = mockMvc.perform(
-                get("/api/items")
-                    .with(userJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
+            String response = result.getResponse().getContentAsString();
 
-        String response = result.getResponse().getContentAsString();
-
-        assertThat(response).contains("Phone");
+            assertThat(response).contains("Phone");
+        });
     }
 
     @Test
-    void shouldGetItemByIdAsUser() throws Exception {
+    void shouldGetItemByIdAsUser() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
-
-        mockMvc.perform(
-                get("/api/items/{id}", item.getId())
-                    .with(userJwt()))
-            .andExpect(status().isOk());
+            mockMvc.perform(
+                    get("/api/v1/items/{id}", item.getId())
+                        .with(userJwt()))
+                .andExpect(status().isOk());
+        });
     }
 
     @Test
-    void shouldReturnForbiddenWhenUserCreatesItem() throws Exception {
-
-        String json = """
+    void shouldReturnForbiddenWhenUserCreatesItem() {
+        assertDoesNotThrow(() -> {
+            String json = """
         {
           "name":"Laptop",
           "price":2500.00
         }
         """;
 
-        mockMvc.perform(
-                post("/api/items")
-                    .with(userJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-            .andExpect(status().isForbidden());
+            mockMvc.perform(
+                    post("/api/v1/items")
+                        .with(userJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isForbidden());
 
-        assertThat(itemRepository.count()).isZero();
+            assertThat(itemRepository.count()).isZero();
+        });
     }
 
     @Test
-    void shouldReturnForbiddenWhenUserUpdatesItem() throws Exception {
+    void shouldReturnForbiddenWhenUserUpdatesItem() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
-
-        String json = """
+            String json = """
         {
           "name":"IPhone",
           "price":3500.00
         }
         """;
 
-        mockMvc.perform(
-                put("/api/items/{id}", item.getId())
-                    .with(userJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-            .andExpect(status().isForbidden());
+            mockMvc.perform(
+                    put("/api/v1/items/{id}", item.getId())
+                        .with(userJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isForbidden());
+        });
     }
 
     @Test
-    void shouldReturnForbiddenWhenUserDeletesItem() throws Exception {
+    void shouldReturnForbiddenWhenUserDeletesItem() {
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        Item item = createItem();
+            mockMvc.perform(
+                    delete("/api/v1/items/{id}", item.getId())
+                        .with(userJwt()))
+                .andExpect(status().isForbidden());
 
-        mockMvc.perform(
-                delete("/api/items/{id}", item.getId())
-                    .with(userJwt()))
-            .andExpect(status().isForbidden());
-
-        assertThat(itemRepository.findById(item.getId())).isPresent();
+            assertThat(itemRepository.findById(item.getId())).isPresent();
+        });
     }
 
     @Test
-    void shouldReturnUnauthorizedWithoutJwt() throws Exception {
+    void shouldReturnUnauthorizedWithoutJwt() {
+        assertDoesNotThrow(() -> {
+            mockMvc.perform(
+                    get("/api/v1/items"))
+                .andExpect(status().isUnauthorized());
 
-        mockMvc.perform(get("/api/items"))
-            .andExpect(status().isUnauthorized());
-        mockMvc.perform(post("/api/items")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"Laptop\",\"price\":2500.00}"))
-            .andExpect(status().isUnauthorized());
-        mockMvc.perform(delete("/api/items/{id}", 1L))
-            .andExpect(status().isUnauthorized());
+            mockMvc.perform(
+                    post("/api/v1/items")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                      "name":"Laptop",
+                      "price":2500.00
+                    }
+                    """))
+                .andExpect(status().isUnauthorized());
+
+            mockMvc.perform(
+                    delete("/api/v1/items/{id}", 1L))
+                .andExpect(status().isUnauthorized());
+        });
     }
 }

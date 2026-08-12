@@ -13,23 +13,12 @@ import org.mapstruct.MappingTarget;
 )
 public interface OrderMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "userId", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "totalPrice", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "orderItems", ignore = true)
     Order toEntity(OrderCreateDto dto);
 
     @Mapping(source = "orderItems", target = "items")
     OrderDisplayDto toDisplayDto(Order entity);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "userId", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "totalPrice", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "orderItems", ignore = true)
+
     void updateEntity(OrderCreateDto dto,
                       @MappingTarget Order entity);
 }

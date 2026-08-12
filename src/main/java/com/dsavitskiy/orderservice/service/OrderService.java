@@ -9,6 +9,7 @@ import com.dsavitskiy.orderservice.dto.UserDisplayDto;
 import com.dsavitskiy.orderservice.entity.Item;
 import com.dsavitskiy.orderservice.entity.Order;
 import com.dsavitskiy.orderservice.entity.OrderItem;
+import com.dsavitskiy.orderservice.entity.OrderStatus;
 import com.dsavitskiy.orderservice.exception.ResourceNotFoundExeption;
 import com.dsavitskiy.orderservice.exception.UserServiceException;
 import com.dsavitskiy.orderservice.mapper.OrderMapper;
@@ -36,9 +37,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private static final String ORDER_NOT_FOUND = "Order not found with id: ";
-    private static final String ITEM_NOT_FOUND = "Item not found with id: ";
-    private static final String STATUS_PENDING = "PENDING";
+    private static final String ORDER_NOT_FOUND = "Order not found with id: %s";
+    private static final String ITEM_NOT_FOUND = "Item not found with id: %s";
 
     private final OrderRepository orderRepository;
     private final ItemRepository itemRepository;
@@ -49,7 +49,7 @@ public class OrderService {
     public OrderResponseDto createOrder(OrderCreateDto dto) {
         Order order = orderMapper.toEntity(dto);
         order.setUserId(SecurityUtil.getCurrentUserId());
-        order.setStatus(STATUS_PENDING);
+        order.setStatus(OrderStatus.PENDING);
         order.setDeleted(false);
         fillOrder(order, dto.items());
         Order saved = orderRepository.save(order);
@@ -60,7 +60,7 @@ public class OrderService {
     public OrderResponseDto getOrderById(Long id) {
         Order order = orderRepository.findById(id)
             .filter(o -> !o.isDeleted())
-            .orElseThrow(() -> new ResourceNotFoundExeption(ORDER_NOT_FOUND + id));
+            .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ORDER_NOT_FOUND, id)));
         checkAccess(order);
         return buildResponse(order);
     }
@@ -69,7 +69,7 @@ public class OrderService {
     public Page<OrderResponseDto> getOrders(
         LocalDateTime from,
         LocalDateTime to,
-        List<String> statuses,
+        List<OrderStatus> statuses,
         Pageable pageable) {
         if (!SecurityUtil.isAdmin()) {
             throw new AccessDeniedException("Access denied");
@@ -114,7 +114,7 @@ public class OrderService {
     @Transactional
     public OrderResponseDto updateOrder(Long id, OrderCreateDto dto) {
         Order order = orderRepository.findById(id).filter(o->!o.isDeleted())
-            .orElseThrow(() -> new ResourceNotFoundExeption(ORDER_NOT_FOUND + id));
+            .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ORDER_NOT_FOUND, id)));
         checkAccess(order);
         order.getOrderItems().clear();
         fillOrder(order, dto.items());
@@ -124,7 +124,7 @@ public class OrderService {
     @Transactional
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id).filter(o->!o.isDeleted())
-            .orElseThrow(() -> new ResourceNotFoundExeption(ORDER_NOT_FOUND + id));
+            .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ORDER_NOT_FOUND, id)));
         checkAccess(order);
         order.setDeleted(true);
     }
@@ -134,7 +134,7 @@ public class OrderService {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemCreateDto dto : items) {
             Item item = itemRepository.findById(dto.itemId())
-                .orElseThrow(() -> new ResourceNotFoundExeption(ITEM_NOT_FOUND + dto.itemId()));
+                .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ITEM_NOT_FOUND, dto.itemId())));
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setItem(item);

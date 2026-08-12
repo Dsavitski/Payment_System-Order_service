@@ -1,6 +1,7 @@
 package com.dsavitskiy.orderservice.specification;
 
 import com.dsavitskiy.orderservice.entity.Order;
+import com.dsavitskiy.orderservice.entity.OrderStatus;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,7 +30,7 @@ public class OrderSpecification {
             cb.lessThanOrEqualTo(root.get("createdAt"), to);
     }
 
-    public static Specification<Order> hasStatuses(List<String> statuses) {
+    public static Specification<Order> hasStatuses(List<OrderStatus> statuses) {
         if (statuses == null || statuses.isEmpty()) {
             return (root, query, cb) -> cb.conjunction();
         }

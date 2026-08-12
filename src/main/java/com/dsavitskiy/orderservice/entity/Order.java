@@ -21,8 +21,9 @@ public class Order extends BaseEntity {
     private Long id;
     @Column(name = "user_id", nullable = false)
     private UUID userId;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private OrderStatus status;
     @Column(name = "total_price",nullable = false)
     private BigDecimal totalPrice;
     @Column(name = "deleted", nullable = false)

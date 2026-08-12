@@ -3,6 +3,7 @@ package com.dsavitskiy.orderservice.controller;
 import com.dsavitskiy.orderservice.AbstractIntegrationTest;
 import com.dsavitskiy.orderservice.dto.OrderResponseDto;
 import com.dsavitskiy.orderservice.entity.Item;
+import com.dsavitskiy.orderservice.entity.OrderStatus;
 import com.dsavitskiy.orderservice.repository.ItemRepository;
 import com.dsavitskiy.orderservice.repository.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -149,77 +151,84 @@ class OrderControllerIT extends AbstractIntegrationTest {
         """.formatted(itemId);
     }
 
-    private OrderResponseDto createOrder(Item item) throws Exception {
+    private OrderResponseDto createOrder(Item item) {
 
-        var mvcResult = mockMvc.perform(
-                post("/api/orders")
-                    .with(userJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(createOrderJson(item.getId())))
-            .andExpect(status().isCreated())
-            .andReturn();
+        return assertDoesNotThrow(() -> {
+            var mvcResult = mockMvc.perform(
+                    post("/api/v1/orders")
+                        .with(userJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createOrderJson(item.getId())))
+                .andExpect(status().isCreated())
+                .andReturn();
 
-        return objectMapper.readValue(
-            mvcResult.getResponse().getContentAsString(),
-            OrderResponseDto.class
-        );
-    }
-
-    @Test
-    void shouldCreateOrder() throws Exception {
-
-        Item item = createItem();
-
-        OrderResponseDto response = createOrder(item);
-
-        assertThat(response.order().id()).isNotNull();
-        assertThat(response.order().userId()).isEqualTo(userId);
-        assertThat(response.order().status()).isEqualTo("PENDING");
-        assertThat(response.order().totalPrice())
-            .isEqualByComparingTo("2000.00");
-
-        assertThat(orderRepository.count()).isEqualTo(1);
-    }
-
-    @Test
-    void shouldGetOrderById() throws Exception {
-
-        Item item = createItem();
-
-        OrderResponseDto created = createOrder(item);
-
-        var mvcResult = mockMvc.perform(
-                get("/api/orders/{id}", created.order().id())
-                    .with(userJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        OrderResponseDto response =
-            objectMapper.readValue(
+            return objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(),
-                OrderResponseDto.class);
-
-        assertThat(response.order().id())
-            .isEqualTo(created.order().id());
-
-        assertThat(response.order().userId())
-            .isEqualTo(userId);
-
-        assertThat(response.order().status())
-            .isEqualTo("PENDING");
-
-        assertThat(response.order().totalPrice())
-            .isEqualByComparingTo("2000.00");
+                OrderResponseDto.class
+            );
+        });
     }
 
     @Test
-    void shouldUpdateOrder() throws Exception {
+    void shouldCreateOrder() {
 
-        Item item = createItem();
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        OrderResponseDto created = createOrder(item);
+            OrderResponseDto response = createOrder(item);
 
-        String json = """
+            assertThat(response.order().id()).isNotNull();
+            assertThat(response.order().userId()).isEqualTo(userId);
+            assertThat(response.order().status()).isEqualTo(OrderStatus.PENDING);
+            assertThat(response.order().totalPrice())
+                .isEqualByComparingTo("2000.00");
+
+            assertThat(orderRepository.count()).isEqualTo(1);
+        });
+    }
+
+    @Test
+    void shouldGetOrderById() {
+
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
+
+            OrderResponseDto created = createOrder(item);
+
+            var mvcResult = mockMvc.perform(
+                    get("/api/v1/orders/{id}", created.order().id())
+                        .with(userJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+            OrderResponseDto response =
+                objectMapper.readValue(
+                    mvcResult.getResponse().getContentAsString(),
+                    OrderResponseDto.class);
+
+            assertThat(response.order().id())
+                .isEqualTo(created.order().id());
+
+            assertThat(response.order().userId())
+                .isEqualTo(userId);
+
+            assertThat(response.order().status())
+                .isEqualTo(OrderStatus.PENDING);
+
+            assertThat(response.order().totalPrice())
+                .isEqualByComparingTo("2000.00");
+        });
+    }
+
+    @Test
+    void shouldUpdateOrder() {
+
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
+
+            OrderResponseDto created = createOrder(item);
+
+            String json = """
         {
           "items":[
             {
@@ -230,96 +239,106 @@ class OrderControllerIT extends AbstractIntegrationTest {
         }
         """.formatted(item.getId());
 
-        var mvcResult = mockMvc.perform(
-                put("/api/orders/{id}", created.order().id())
-                    .with(userJwt())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
-            .andExpect(status().isOk())
-            .andReturn();
+            var mvcResult = mockMvc.perform(
+                    put("/api/v1/orders/{id}", created.order().id())
+                        .with(userJwt())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        OrderResponseDto updated =
-            objectMapper.readValue(
-                mvcResult.getResponse().getContentAsString(),
-                OrderResponseDto.class);
+            OrderResponseDto updated =
+                objectMapper.readValue(
+                    mvcResult.getResponse().getContentAsString(),
+                    OrderResponseDto.class);
 
-        assertThat(updated.order().totalPrice())
-            .isEqualByComparingTo("5000.00");
+            assertThat(updated.order().totalPrice())
+                .isEqualByComparingTo("5000.00");
+        });
     }
 
     @Test
-    void shouldDeleteOrder() throws Exception {
+    void shouldDeleteOrder() {
 
-        Item item = createItem();
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        OrderResponseDto created = createOrder(item);
+            OrderResponseDto created = createOrder(item);
 
-        mockMvc.perform(
-                delete("/api/orders/{id}", created.order().id())
-                    .with(userJwt()))
-            .andExpect(status().isNoContent());
+            mockMvc.perform(
+                    delete("/api/v1/orders/{id}", created.order().id())
+                        .with(userJwt()))
+                .andExpect(status().isNoContent());
 
-        assertThat(
-            orderRepository.findById(created.order().id())
-                .orElseThrow()
-                .isDeleted())
-            .isTrue();
-    }
-    
-
-    @Test
-    void shouldGetOrders() throws Exception {
-
-        Item item = createItem();
-
-        createOrder(item);
-
-        var mvcResult = mockMvc.perform(
-                get("/api/orders")
-                    .with(adminJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        String response = mvcResult.getResponse().getContentAsString();
-
-
-        assertThat(response).contains("PENDING");
-        assertThat(response).contains(userId.toString());
+            assertThat(
+                orderRepository.findById(created.order().id())
+                    .orElseThrow()
+                    .isDeleted())
+                .isTrue();
+        });
     }
 
+
     @Test
-    void shouldGetOrdersByUserId() throws Exception {
+    void shouldGetOrders() {
 
-        Item item = createItem();
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
 
-        createOrder(item);
+            createOrder(item);
 
-        var mvcResult = mockMvc.perform(
-                get("/api/orders/user/{userId}", userId)
-                    .with(userJwt()))
-            .andExpect(status().isOk())
-            .andReturn();
+            var mvcResult = mockMvc.perform(
+                    get("/api/v1/orders")
+                        .with(adminJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        String response = mvcResult.getResponse().getContentAsString();
+            String response = mvcResult.getResponse().getContentAsString();
 
-        assertThat(response).contains(userId.toString());
+            assertThat(response).contains("PENDING");
+            assertThat(response).contains(userId.toString());
+        });
     }
 
     @Test
-    void shouldReturnNotFoundWhenOrderDoesNotExist() throws Exception {
+    void shouldGetOrdersByUserId() {
 
-        mockMvc.perform(
-                get("/api/orders/{id}", 999999L)
-                    .with(userJwt()))
-            .andExpect(status().isNotFound());
+        assertDoesNotThrow(() -> {
+            Item item = createItem();
+
+            createOrder(item);
+
+            var mvcResult = mockMvc.perform(
+                    get("/api/v1/orders/user/{userId}", userId)
+                        .with(userJwt()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+            String response = mvcResult.getResponse().getContentAsString();
+
+            assertThat(response).contains(userId.toString());
+        });
     }
 
     @Test
-    void shouldReturnForbiddenWhenUserRequestsAllOrders() throws Exception {
+    void shouldReturnNotFoundWhenOrderDoesNotExist() {
 
-        mockMvc.perform(
-                get("/api/orders")
-                    .with(userJwt()))
-            .andExpect(status().isForbidden());
+        assertDoesNotThrow(() -> {
+            mockMvc.perform(
+                    get("/api/v1/orders/{id}", 999999L)
+                        .with(userJwt()))
+                .andExpect(status().isNotFound());
+        });
+    }
+
+    @Test
+    void shouldReturnForbiddenWhenUserRequestsAllOrders() {
+
+        assertDoesNotThrow(() -> {
+            mockMvc.perform(
+                    get("/api/v1/orders")
+                        .with(userJwt()))
+                .andExpect(status().isForbidden());
+        });
     }
 }

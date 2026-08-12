@@ -4,6 +4,7 @@ import com.dsavitskiy.orderservice.client.UserClient;
 import com.dsavitskiy.orderservice.dto.*;
 import com.dsavitskiy.orderservice.entity.Item;
 import com.dsavitskiy.orderservice.entity.Order;
+import com.dsavitskiy.orderservice.entity.OrderStatus;
 import com.dsavitskiy.orderservice.exception.ResourceNotFoundExeption;
 import com.dsavitskiy.orderservice.exception.UserServiceException;
 import com.dsavitskiy.orderservice.mapper.OrderMapper;
@@ -79,6 +80,7 @@ class OrderServiceTest {
             OrderResponseDto response = orderService.createOrder(dto);
 
             assertNotNull(response);
+            assertEquals(OrderStatus.PENDING, order.getStatus());
             verify(orderRepository).save(any(Order.class));
         }
     }

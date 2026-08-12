@@ -2,6 +2,7 @@ package com.dsavitskiy.orderservice.controller;
 
 import com.dsavitskiy.orderservice.dto.OrderCreateDto;
 import com.dsavitskiy.orderservice.dto.OrderResponseDto;
+import com.dsavitskiy.orderservice.entity.OrderStatus;
 import com.dsavitskiy.orderservice.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 public class OrderController {
 
@@ -47,7 +48,7 @@ public class OrderController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         LocalDateTime to,
         @RequestParam(required = false)
-        List<String> statuses,
+        List<OrderStatus> statuses,
         Pageable pageable) {
         return ResponseEntity.ok(orderService.getOrders(from, to, statuses, pageable));
     }
