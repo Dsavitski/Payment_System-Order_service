@@ -185,4 +185,27 @@ public class OrderService {
         log.info("User Service is unavailable while getting user by id: {}", userId, throwable);
         throw new UserServiceException("User Service is temporarily unavailable", throwable);
     }
+
+    @Transactional
+    public void markOrderAsPaid(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .filter(o -> !o.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ORDER_NOT_FOUND, orderId)));
+        log.info("Updating order {} status to PAID after successful payment", orderId);
+        order.setStatus(OrderStatus.PAID);
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void markOrderAsPaymentFailed(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .filter(o -> !o.isDeleted())
+                .orElseThrow(() -> new ResourceNotFoundExeption(String.format(ORDER_NOT_FOUND, orderId)));
+
+        log.info("Updating order {} status to CANCELLED after declined payment", orderId);
+
+        order.setStatus(OrderStatus.CANCELLED);
+
+        orderRepository.save(order);
+    }
 }
