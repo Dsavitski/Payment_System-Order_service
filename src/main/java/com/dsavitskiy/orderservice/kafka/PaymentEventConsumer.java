@@ -21,18 +21,13 @@ public class PaymentEventConsumer {
     public void handlePaymentCreatedEvent(PaymentCreatedEvent event) {
         log.info("Received PaymentCreated event: paymentId={}, orderId={}, status={}",
                 event.paymentId(), event.orderId(), event.status());
-
-        try {
             if ("SUCCESS".equals(event.status())) {
-                log.info("Payment is successfull");
+                log.info("Payment is successful");
                 orderService.markOrderAsPaid(event.orderId());
             } else {
                 log.info("Payment is cancelled");
                 orderService.markOrderAsPaymentFailed(event.orderId());
             }
-        } catch (Exception e) {
-            log.error("Error handling event for orderId={}: {}", event.orderId(), e.getMessage(), e);
-            throw e;
-        }
+
     }
 }
