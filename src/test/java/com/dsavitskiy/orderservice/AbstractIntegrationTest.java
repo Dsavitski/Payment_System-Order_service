@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
+@AutoConfigureWireMock(port = 18080)
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
